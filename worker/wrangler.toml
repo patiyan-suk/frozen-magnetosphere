@@ -1,0 +1,15 @@
+name = "farm-management-worker"
+main = "src/index.ts"
+compatibility_date = "2023-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "farm-db"
+database_id = "361e3c8c-33c3-46f5-9945-0ace9c9ca379"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "farm-images"
+
+[observability]
+enabled = true
