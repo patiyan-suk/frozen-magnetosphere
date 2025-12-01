@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Notes() {
     const { t } = useLanguage();
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const [notes, setNotes] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -24,6 +24,12 @@ export default function Notes() {
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+
             const data = await res.json();
             setNotes(data);
         } catch (error) {
@@ -32,8 +38,12 @@ export default function Notes() {
     };
 
     useEffect(() => {
-        if (token) fetchNotes();
-    }, [token, searchQuery]);
+        const delayDebounceFn = setTimeout(() => {
+            if (token) fetchNotes();
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -52,6 +62,11 @@ export default function Notes() {
                 },
                 body: JSON.stringify(formData)
             });
+
+            if (res.status === 401) {
+                logout();
+                return;
+            }
 
             if (res.ok) {
                 setFormData({ title: '', content: '', date: new Date().toISOString().split('T')[0] });
@@ -83,6 +98,11 @@ export default function Notes() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+
             if (res.ok) {
                 fetchNotes();
             }
@@ -95,6 +115,67 @@ export default function Notes() {
         setIsAdding(false);
         setEditingNote(null);
         setFormData({ title: '', content: '', date: new Date().toISOString().split('T')[0] });
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const res = await fetch('https://farm-management-worker.jsa-app.workers.dev/api/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+
+            const data = await res.json();
+            if (data.url) {
+                const imageMarkdown = `\n![Image](${data.url})\n`;
+                setFormData(prev => ({
+                    ...prev,
+                    content: prev.content + imageMarkdown
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+            alert('Failed to upload image');
+        }
+    };
+
+    const renderContent = (content) => {
+        if (!content) return null;
+
+        // Split content by image markdown pattern
+        const parts = content.split(/(!\[.*?\]\(.*?\))/g);
+
+        return parts.map((part, index) => {
+            const imageMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+            if (imageMatch) {
+                return (
+                    <img
+                        key={index}
+                        src={imageMatch[2]}
+                        alt={imageMatch[1] || 'Note Image'}
+                        style={{
+                            maxWidth: '100%',
+                            maxHeight: '300px',
+                            borderRadius: '8px',
+                            margin: '1rem 0',
+                            display: 'block'
+                        }}
+                    />
+                );
+            }
+            return <span key={index}>{part}</span>;
+        });
     };
 
     return (
@@ -138,11 +219,28 @@ export default function Notes() {
                                 value={formData.content}
                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                 placeholder={t('noteContent')}
-                                rows="6"
-                                style={{ resize: 'vertical' }}
+                                rows="12"
+                                style={{ resize: 'vertical', minHeight: '200px', fontSize: '1rem', lineHeight: '1.6' }}
                             />
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <input
+                                    type="file"
+                                    id="note-image-upload"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={handleImageUpload}
+                                />
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    style={{ background: 'var(--secondary-color)', fontSize: '0.9rem' }}
+                                    onClick={() => document.getElementById('note-image-upload').click()}
+                                >
+                                    📷 {t('insertImage')}
+                                </button>
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                             <button type="submit" className="btn">
                                 {t('save')}
                             </button>
@@ -197,9 +295,9 @@ export default function Notes() {
                                     </button>
                                 </div>
                             </div>
-                            <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                                {note.content}
-                            </p>
+                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                                {renderContent(note.content)}
+                            </div>
                         </div>
                     ))
                 )}

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard({ onEdit }) {
     const { t, locale } = useLanguage();
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const [summary, setSummary] = useState({
         daily: { total_sales: 0, total_weight: 0 },
         monthly: { total_sales: 0, total_weight: 0 },
@@ -18,10 +18,18 @@ export default function Dashboard({ onEdit }) {
             const headers = { 'Authorization': `Bearer ${token}` };
 
             const summaryRes = await fetch('https://farm-management-worker.jsa-app.workers.dev/api/sales/summary', { headers });
+            if (summaryRes.status === 401) {
+                logout();
+                return;
+            }
             const summaryData = await summaryRes.json();
             setSummary(summaryData);
 
             const salesRes = await fetch('https://farm-management-worker.jsa-app.workers.dev/api/sales', { headers });
+            if (salesRes.status === 401) {
+                logout();
+                return;
+            }
             const salesData = await salesRes.json();
             setRecentSales(salesData);
         } catch (error) {
@@ -41,6 +49,11 @@ export default function Dashboard({ onEdit }) {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (res.status === 401) {
+                logout();
+                return;
+            }
 
             if (res.ok) {
                 alert('Deleted successfully');

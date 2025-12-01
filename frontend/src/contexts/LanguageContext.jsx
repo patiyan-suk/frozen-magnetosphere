@@ -37,7 +37,17 @@ const translations = {
         noteContent: 'Content',
         noNotesFound: 'No notes found',
         save: 'Save',
-        cancel: 'Cancel'
+        cancel: 'Cancel',
+        expenses: 'Expenses',
+        addExpense: 'Add Expense',
+        editExpense: 'Edit Expense',
+        itemName: 'Item Name',
+        amount: 'Amount',
+        category: 'Category',
+        totalExpenses: 'Total Expenses',
+        total: 'Total',
+        noExpensesFound: 'No expenses found',
+        insertImage: 'Insert Image'
     },
     th: {
         appTitle: 'ระบบจัดการสวน',
@@ -75,7 +85,17 @@ const translations = {
         noteContent: 'เนื้อหา',
         noNotesFound: 'ไม่พบบันทึก',
         save: 'บันทึก',
-        cancel: 'ยกเลิก'
+        cancel: 'ยกเลิก',
+        expenses: 'รายจ่าย',
+        addExpense: 'เพิ่มรายจ่าย',
+        editExpense: 'แก้ไขรายจ่าย',
+        itemName: 'รายการ',
+        amount: 'จำนวนเงิน',
+        category: 'หมวดหมู่',
+        totalExpenses: 'รวมรายจ่าย',
+        total: 'รวม',
+        noExpensesFound: 'ไม่พบรายการรายจ่าย',
+        insertImage: 'แทรกรูปภาพ'
     }
 };
 

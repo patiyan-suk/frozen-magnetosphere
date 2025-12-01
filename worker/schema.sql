@@ -29,3 +29,15 @@ CREATE TABLE IF NOT EXISTS notes (
     updated_at INTEGER DEFAULT (strftime('%s', 'now')),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- Expenses Table
+CREATE TABLE IF NOT EXISTS expenses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  date TEXT NOT NULL,
+  item_name TEXT NOT NULL,
+  amount REAL NOT NULL,
+  category TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
